@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      FRONTEND_ORIGIN: http://localhost:4321
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      PUBLIC_API_BASE_URL: http://localhost:8000
+    ports:
+      - "4321:4321"
+    depends_on:
+      - backend
