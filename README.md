@@ -145,3 +145,14 @@ pnpm run dev
 cd backend
 pytest
 ```
+
+## Credits
+
+This project is built with:
+
+- **[FastAPI](https://fastapi.tiangolo.com/)** — Modern, fast web framework for building APIs with Python 3.7+.
+- **[spaCy](https://spacy.io/)** — Industrial-strength Natural Language Processing library, with Spanish language models (`es_core_news_lg`).
+- **[Astro](https://astro.build/)** — The web framework for content-driven sites, static generation, and hybrid rendering.
+- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework for rapidly building custom designs.
+
+Special thanks to the open-source communities behind these projects.
