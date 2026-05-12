@@ -156,3 +156,8 @@ This project is built with:
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework for rapidly building custom designs.
 
 Special thanks to the open-source communities behind these projects.
+
+IA:
+
+- [Perplexity](https://www.perplexity.ai/search/3ba0a6b7-6f1c-4500-9a51-92c95a840791)
+- [Gemini](https://gemini.google.com/app/e03863e1b748c4d3)
