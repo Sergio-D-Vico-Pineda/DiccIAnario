@@ -16,7 +16,7 @@ async def create_session() -> JSONResponse:
         value=session_token,
         httponly=True,
         secure=settings.session_cookie_secure,
-        samesite="lax",
+        samesite=settings.session_cookie_samesite,
         max_age=settings.session_ttl_seconds,
         path="/",
     )
