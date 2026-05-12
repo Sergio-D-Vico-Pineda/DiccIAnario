@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.core.security import verify_bearer_token
 from app.schemas.request import ValidateRequest
 from app.schemas.response import ValidateResponse
 from app.services.nlp_service import NLPService
@@ -20,6 +21,7 @@ def get_validation_service() -> ValidationService:
 @router.post("/validate", response_model=ValidateResponse)
 async def validate_term(
     payload: ValidateRequest,
+    token: str = Depends(verify_bearer_token),
     nlp_service: NLPService = Depends(get_nlp_service),
     validation_service: ValidationService = Depends(get_validation_service),
 ) -> ValidateResponse:

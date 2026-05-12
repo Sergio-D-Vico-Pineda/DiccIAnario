@@ -159,8 +159,7 @@ const apiBaseUrl =
       >
     </p>
 
-    <script is:inline type="module" define:vars={{ apiBaseUrl }}>
-      const apiBaseUrlValue = apiBaseUrl;
+    <script is:inline type="module">
       const form = document.getElementById("validator-form");
       const submitBtn = document.getElementById("submit-btn");
       const input = document.getElementById("term");
@@ -312,7 +311,7 @@ const apiBaseUrl =
         setLoading(true);
 
         try {
-          const response = await fetch(`${apiBaseUrlValue}/api/validate`, {
+          const response = await fetch(`/api/validate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ term: validation.normalized }),

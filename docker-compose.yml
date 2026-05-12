@@ -4,6 +4,7 @@ services:
       context: ./backend
     environment:
       FRONTEND_ORIGIN: http://localhost:4321
+      API_TOKEN: ${API_TOKEN:-your-secure-token-here}
     ports:
       - "8000:8000"
 
@@ -12,6 +13,7 @@ services:
       context: ./frontend
     environment:
       PUBLIC_API_BASE_URL: http://localhost:8000
+      API_TOKEN: ${API_TOKEN:-your-secure-token-here}
     ports:
       - "4321:4321"
     depends_on:

@@ -16,6 +16,18 @@ Aplicación web para validar palabras en español con FastAPI, spaCy, Astro 6 y 
 
 El proyecto espera un archivo `.env` en la raíz del repositorio. Desde ahí se leen tanto las variables del backend como las del frontend.
 
+### Variables de entorno requeridas
+
+Copia `.env.example` a `.env` en la raíz del repositorio y configura:
+
+```env
+FRONTEND_ORIGIN=http://localhost:4321
+PUBLIC_API_BASE_URL=http://localhost:8000
+API_TOKEN=your-secure-token-here
+```
+
+**Importante**: `API_TOKEN` es una variable privada que **nunca se expone al navegador**. Se usa únicamente en el servidor (backend y Astro).
+
 ### 1. Backend
 
 En PowerShell:
@@ -65,14 +77,48 @@ La interfaz quedará disponible en `http://localhost:4321`.
 3. Pulsa `Validar`.
 4. Revisa el resultado con lema, POS, clasificación y confianza del modelo.
 
-También puedes probar la API directamente con `curl` o PowerShell:
+También puedes probar la API directamente con `curl` o PowerShell. **Importante**: La API requiere un bearer token:
 
 ```powershell
 Invoke-RestMethod `
 	-Method Post `
 	-Uri http://localhost:8000/api/validate `
+	-Headers @{Authorization = "Bearer your-secure-token-here"} `
 	-ContentType "application/json" `
 	-Body '{"term":"corriendo"}'
+```
+
+Si accedes desde el navegador (a través de `http://localhost:4321`), la aplicación Astro proxifica automáticamente la solicitud con el token, por lo que no tienes que hacer nada especial.
+
+## Seguridad: Bearer Token y Proxy
+
+La aplicación implementa autenticación bearer token para asegurar que **solo el frontend autorizado pueda acceder a la API**:
+
+### Arquitectura
+
+1. **Frontend (Astro)**: No tiene acceso directo al `API_TOKEN`. Las solicitudes se hacen a `/api/validate` (ruta local).
+2. **Astro Proxy**: La ruta de servidor en `src/pages/api/validate.ts` recibe la solicitud del navegador, añade el bearer token del lado del servidor, y proxifica la solicitud al backend FastAPI.
+3. **Backend (FastAPI)**: Valida el bearer token en cada solicitud. Si es inválido o está ausente, rechaza la solicitud con un error 403.
+
+### Por qué es seguro
+
+- **El token nunca se expone al navegador**: No aparece en `localStorage`, `sessionStorage`, ni en el código HTML/JavaScript.
+- **Solo se envía desde el servidor**: El Astro server hace las peticiones directas al backend con el token en el header `Authorization: Bearer ...`.
+- **CORS y validación de origen**: El backend valida que las solicitudes provengan del origen autorizado.
+
+### Configuración en producción
+
+En `docker-compose.yml`, asegúrate de usar variables de entorno en lugar de valores hardcodeados:
+
+```yaml
+environment:
+  API_TOKEN: ${API_TOKEN:-your-secure-token-here}
+```
+
+Luego, al lanzar los contenedores, proporciona el token como variable de entorno:
+
+```bash
+API_TOKEN="tu-token-secreto-aqui" docker-compose up
 ```
 
 ## Tests
