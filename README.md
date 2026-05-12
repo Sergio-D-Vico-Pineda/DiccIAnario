@@ -23,10 +23,12 @@ Copia `.env.example` a `.env` en la raíz del repositorio y configura:
 ```env
 FRONTEND_ORIGIN=http://localhost:4321
 PUBLIC_API_BASE_URL=http://localhost:8000
-API_TOKEN=your-secure-token-here
+SESSION_SECRET_KEY=your-long-random-secret
+SESSION_TTL_SECONDS=3600
+SESSION_COOKIE_SECURE=false
 ```
 
-**Importante**: `API_TOKEN` es una variable privada que **nunca se expone al navegador**. Se usa únicamente en el servidor (backend y Astro).
+**Importante**: `SESSION_SECRET_KEY` es privada y **nunca se expone al navegador**. Solo firma una cookie httpOnly con caducidad corta.
 
 ### 1. Backend
 
@@ -77,34 +79,40 @@ La interfaz quedará disponible en `http://localhost:4321`.
 3. Pulsa `Validar`.
 4. Revisa el resultado con lema, POS, clasificación y confianza del modelo.
 
-También puedes probar la API directamente con `curl` o PowerShell. **Importante**: La API requiere un bearer token:
+La API usa una cookie de sesión firmada y de corta duración:
 
 ```powershell
 Invoke-RestMethod `
 	-Method Post `
+	-Uri http://localhost:8000/api/session `
+	-WebSession $session
+
+Invoke-RestMethod `
+	-Method Post `
 	-Uri http://localhost:8000/api/validate `
-	-Headers @{Authorization = "Bearer your-secure-token-here"} `
+	-WebSession $session `
 	-ContentType "application/json" `
 	-Body '{"term":"corriendo"}'
 ```
 
-Si accedes desde el navegador (a través de `http://localhost:4321`), la aplicación Astro proxifica automáticamente la solicitud con el token, por lo que no tienes que hacer nada especial.
+Si accedes desde el navegador en `http://localhost:4321`, la app crea la sesión automáticamente y luego envía las solicitudes con `credentials: include`.
 
-## Seguridad: Bearer Token y Proxy
+## Seguridad: Cookie Firmada
 
-La aplicación implementa autenticación bearer token para asegurar que **solo el frontend autorizado pueda acceder a la API**:
+La aplicación implementa una cookie de sesión firmada para que **el navegador no conozca ningún secreto reutilizable**:
 
 ### Arquitectura
 
-1. **Frontend (Astro)**: No tiene acceso directo al `API_TOKEN`. Las solicitudes se hacen a `/api/validate` (ruta local).
-2. **Astro Proxy**: La ruta de servidor en `src/pages/api/validate.ts` recibe la solicitud del navegador, añade el bearer token del lado del servidor, y proxifica la solicitud al backend FastAPI.
-3. **Backend (FastAPI)**: Valida el bearer token en cada solicitud. Si es inválido o está ausente, rechaza la solicitud con un error 403.
+1. **Frontend estático**: Solicita una sesión a `POST /api/session` y luego llama a `POST /api/validate` con `credentials: include`.
+2. **Backend FastAPI**: Emite una cookie `httpOnly` firmada con expiración corta.
+3. **Backend FastAPI**: Valida la cookie en cada petición protegida. Si es inválida o expirada, rechaza la solicitud con `401`.
 
 ### Por qué es seguro
 
-- **El token nunca se expone al navegador**: No aparece en `localStorage`, `sessionStorage`, ni en el código HTML/JavaScript.
-- **Solo se envía desde el servidor**: El Astro server hace las peticiones directas al backend con el token en el header `Authorization: Bearer ...`.
-- **CORS y validación de origen**: El backend valida que las solicitudes provengan del origen autorizado.
+- **El secreto nunca se expone al navegador**: No aparece en `localStorage`, `sessionStorage`, ni en el código HTML/JavaScript.
+- **La cookie es `httpOnly`**: JavaScript no puede leerla ni copiarla.
+- **Expira sola**: La cookie y el token firmado caducan automáticamente.
+- **CORS con credenciales**: El backend solo permite el origen del frontend.
 
 ### Configuración en producción
 

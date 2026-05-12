@@ -159,7 +159,8 @@ const apiBaseUrl =
       >
     </p>
 
-    <script is:inline type="module">
+    <script is:inline type="module" define:vars={{ apiBaseUrl }}>
+      const apiBaseUrlValue = apiBaseUrl;
       const form = document.getElementById("validator-form");
       const submitBtn = document.getElementById("submit-btn");
       const input = document.getElementById("term");
@@ -253,6 +254,24 @@ const apiBaseUrl =
         }
       }
 
+      async function ensureSession() {
+        const response = await fetch(`${apiBaseUrlValue}/api/session`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(
+            payload.detail || "No se pudo iniciar la sesión segura.",
+          );
+        }
+      }
+
       function showError(message) {
         resultMessage.textContent = message;
         resultMessage.className =
@@ -311,13 +330,16 @@ const apiBaseUrl =
         setLoading(true);
 
         try {
-          const response = await fetch(`/api/validate`, {
+          await ensureSession();
+
+          const response = await fetch(`${apiBaseUrlValue}/api/validate`, {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ term: validation.normalized }),
           });
 
-          const payload = await response.json();
+          const payload = await response.json().catch(() => ({}));
           if (!response.ok) {
             showError(payload.detail || "No se pudo completar la validacion.");
             return;
@@ -325,7 +347,11 @@ const apiBaseUrl =
 
           renderResult(payload);
         } catch (error) {
-          showError("Error temporal al consultar la API.");
+          showError(
+            error instanceof Error
+              ? error.message
+              : "Error temporal al consultar la API.",
+          );
         } finally {
           setLoading(false);
         }

@@ -4,7 +4,9 @@ services:
       context: ./backend
     environment:
       FRONTEND_ORIGIN: http://localhost:4321
-      API_TOKEN: ${API_TOKEN:-your-secure-token-here}
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-change-me-to-a-long-random-secret}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-3600}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
     ports:
       - "8000:8000"
 
@@ -13,7 +15,6 @@ services:
       context: ./frontend
     environment:
       PUBLIC_API_BASE_URL: http://localhost:8000
-      API_TOKEN: ${API_TOKEN:-your-secure-token-here}
     ports:
       - "4321:4321"
     depends_on:
