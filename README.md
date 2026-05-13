@@ -72,6 +72,8 @@ El frontend toma `PUBLIC_API_BASE_URL` desde el `.env` de la raíz. Si no está 
 
 La interfaz quedará disponible en `http://localhost:4321`.
 
+En Netlify, configura `PUBLIC_API_BASE_URL` con la URL pública del backend, por ejemplo `https://diccianario.onrender.com`. En el backend, define `FRONTEND_ORIGIN=https://scrae.netlify.app` para que la cookie de sesión se emita con `SameSite=None; Secure` en producción.
+
 ## Cómo probar la app
 
 1. Abre `http://localhost:4321` en el navegador.
