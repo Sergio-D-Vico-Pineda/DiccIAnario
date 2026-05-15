@@ -15,8 +15,8 @@ services:
     container_name: frontend
     build:
       context: ./frontend
-    ports:
-      - "4321:4321"
+#    ports:
+#      - "4321:4321"
     depends_on:
       - backend
     networks:
