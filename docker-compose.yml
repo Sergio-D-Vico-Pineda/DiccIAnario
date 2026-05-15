@@ -10,14 +10,22 @@ services:
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
     ports:
       - "8000:8000"
+    networks:
+      - dicc-network
 
   frontend:
     container_name: fe-dicc
     build:
       context: ./frontend
     environment:
-      PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL:-http://localhost:8000}
+      PUBLIC_API_BASE_URL: http://backend:8000
     ports:
       - "4321:4321"
     depends_on:
       - backend
+    networks:
+      - dicc-network
+
+networks:
+  dicc-network:
+    driver: bridge
