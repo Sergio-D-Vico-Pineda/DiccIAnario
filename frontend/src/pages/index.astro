@@ -1,9 +1,6 @@
 ---
 import TechStackPills from "../components/TechStackPills.astro";
 import "../styles/global.css";
-
-const apiBaseUrl =
-  import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 ---
 
 <html lang="es">
@@ -159,8 +156,7 @@ const apiBaseUrl =
       >
     </p>
 
-    <script is:inline type="module" define:vars={{ apiBaseUrl }}>
-      const apiBaseUrlValue = apiBaseUrl;
+    <script is:inline type="module">
       const form = document.getElementById("validator-form");
       const submitBtn = document.getElementById("submit-btn");
       const input = document.getElementById("term");
@@ -255,7 +251,7 @@ const apiBaseUrl =
       }
 
       async function ensureSession() {
-        const response = await fetch(`${apiBaseUrlValue}/api/session`, {
+        const response = await fetch("/backendapi/session", {
           method: "POST",
           credentials: "include",
           headers: {
@@ -332,7 +328,7 @@ const apiBaseUrl =
         try {
           await ensureSession();
 
-          const response = await fetch(`${apiBaseUrlValue}/api/validate`, {
+          const response = await fetch("/backendapi/validate", {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
