@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import spacy
 
 from app.utils.pos_mapper import map_pos_to_classification
+from app.utils.language_detector import is_spanish
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,16 @@ class NLPService:
         return " ".join(parts) if parts else lemma
 
     def analyze(self, term: str) -> AnalysisResult:
+        # Short-circuit: reject terms that are not Spanish before invoking spaCy.
+        if not is_spanish(term):
+            return AnalysisResult(
+                token=term,
+                lemma=term,
+                pos="X",
+                classification="desconocida",
+                is_oov=True,
+            )
+
         doc = self._load_model()(term)
         token = doc[0] if doc else None
         if token is None:

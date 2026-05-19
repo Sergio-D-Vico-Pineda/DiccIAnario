@@ -6,6 +6,7 @@ from app.schemas.response import ValidateResponse
 from app.services.nlp_service import NLPService
 from app.services.validation_service import ValidationService
 from app.utils.text_normalizer import is_allowed_term, normalize_term
+from app.utils.language_detector import is_spanish
 
 router = APIRouter(prefix="/api", tags=["validation"])
 
@@ -32,6 +33,11 @@ async def validate_term(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="term length out of range")
     if not is_allowed_term(normalized):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="term contains unsupported characters")
+
+    # Quick language check before invoking the (heavier) spaCy model. If the detector
+    # determines the term is not Spanish, return a valid HTTP response marking it invalid.
+    if not is_spanish(normalized):
+        return ValidateResponse(input=raw_term, normalized=normalized, is_valid=False, lemma=None)
 
     analysis = nlp_service.analyze(normalized)
 

@@ -20,6 +20,20 @@ Aplicación para validar palabras en español con un frontend Astro estático, u
 - pnpm 10.
 - Docker y Docker Compose si quieres levantar todo con contenedores.
 
+### Dependencia de detección de idioma
+
+El backend ahora usa `lingua-language-detector` para comprobar rápidamente que el término
+proporcionado esté en español antes de pasar la palabra al modelo spaCy. Instala las dependencias
+del backend con:
+
+```powershell
+cd backend
+pip install -r requirements.txt
+```
+
+Si `lingua` no está disponible en el entorno, el servidor usa una heurística de reserva para
+mantener un comportamiento estable en tests locales.
+
 ## Variables de entorno
 
 El archivo `.env` de la raíz solo controla el backend:
