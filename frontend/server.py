@@ -2,7 +2,8 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen, build_opener, HTTPCookieProcessor
+from http.cookiejar import CookieJar
 import json
 import mimetypes
 import os
@@ -10,6 +11,9 @@ import os
 ROOT = Path(__file__).resolve().parent
 DIST = ROOT / "dist"
 BACKEND = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
+
+# Maintain a persistent session with the backend so cookies are preserved across requests.
+_backend_session = build_opener(HTTPCookieProcessor(CookieJar()))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -32,9 +36,6 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(length) if length else b""
         headers = {"Content-Type": self.headers.get("Content-Type", "application/json"), "Accept": "application/json"}
-        cookie = self.headers.get("Cookie")
-        if cookie:
-            headers["Cookie"] = cookie
 
         request = Request(
             BACKEND + backend_path,
@@ -44,7 +45,7 @@ class Handler(BaseHTTPRequestHandler):
         )
 
         try:
-            with urlopen(request) as response:
+            with _backend_session.open(request) as response:
                 payload = response.read()
                 self.send_response(response.status)
                 for key, value in response.headers.items():
