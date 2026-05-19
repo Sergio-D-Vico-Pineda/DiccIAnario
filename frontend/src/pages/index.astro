@@ -38,7 +38,7 @@ import "../styles/global.css";
   </head>
   <body class="antialiased text-slate-900 dark:text-slate-100">
     <main
-      class="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10"
+      class="mx-auto flex min-h-dvh w-full max-w-6xl items-center px-4 py-10"
     >
       <section class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div class="flex flex-col justify-center gap-3">
@@ -65,7 +65,7 @@ import "../styles/global.css";
           </div>
           <div>
             <h1
-              class="max-w-xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-[2.7rem] xl:text-5xl mb-3 transition-all duration-300 dark:text-slate-100"
+              class="max-w-xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-[2.7rem] xl:text-5xl mb-3 transition-all duration-300 dark:text-slate-100 text-pretty"
             >
               Validador Lingüístico con IA
             </h1>
@@ -102,6 +102,7 @@ import "../styles/global.css";
                 id="term"
                 name="term"
                 type="text"
+                autofocus
                 minlength="3"
                 maxlength="25"
                 inputmode="text"
@@ -197,6 +198,23 @@ import "../styles/global.css";
           }
         });
       }
+
+      function focusInput() {
+        if (input instanceof HTMLInputElement) {
+          input.focus({ preventScroll: true });
+        }
+      }
+
+      window.addEventListener("load", () => {
+        requestAnimationFrame(focusInput);
+      });
+
+      window.addEventListener("pageshow", focusInput);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          focusInput();
+        }
+      });
 
       // Pattern matching backend validation: only a-z, áéíóúü, and ñ
       const ALLOWED_PATTERN = /^[a-záéíóúüñ]+$/i;
