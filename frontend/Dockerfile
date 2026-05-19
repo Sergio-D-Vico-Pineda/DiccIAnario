@@ -21,5 +21,6 @@ COPY server.py ./server.py
 EXPOSE 4321
 
 ENV PORT=4321
+ENV BACKEND_URL=http://backend:8000
 
 CMD ["python", "server.py"]

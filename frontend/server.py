@@ -9,7 +9,7 @@ import os
 
 ROOT = Path(__file__).resolve().parent
 DIST = ROOT / "dist"
-BACKEND = "http://backend:8000"
+BACKEND = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
 
 
 class Handler(BaseHTTPRequestHandler):
