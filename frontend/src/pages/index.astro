@@ -168,6 +168,8 @@ import "../styles/global.css";
       const themeToggleLabel = document.getElementById("theme-toggle-label");
 
       let isLoading = false;
+      let hasSession = false;
+      let sessionPromise = null;
       const THEME_STORAGE_KEY = "theme-preference";
 
       function applyTheme(theme) {
@@ -269,20 +271,36 @@ import "../styles/global.css";
       }
 
       async function ensureSession() {
-        const response = await fetch("/backendapi/session", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        });
+        if (hasSession) {
+          return;
+        }
 
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(
-            payload.detail || "No se pudo iniciar la sesión segura.",
-          );
+        if (!sessionPromise) {
+          sessionPromise = (async () => {
+            const response = await fetch("/backendapi/session", {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}),
+            });
+
+            if (!response.ok) {
+              const payload = await response.json().catch(() => ({}));
+              throw new Error(
+                payload.detail || "No se pudo iniciar la sesión segura.",
+              );
+            }
+
+            hasSession = true;
+          })();
+        }
+
+        try {
+          await sessionPromise;
+        } finally {
+          sessionPromise = null;
         }
       }
 
@@ -346,12 +364,24 @@ import "../styles/global.css";
         try {
           await ensureSession();
 
-          const response = await fetch("/backendapi/validate", {
+          let response = await fetch("/backendapi/validate", {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ term: validation.normalized }),
           });
+
+          // If the session expired, refresh it once and retry validation.
+          if (response.status === 401) {
+            hasSession = false;
+            await ensureSession();
+            response = await fetch("/backendapi/validate", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ term: validation.normalized }),
+            });
+          }
 
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) {
