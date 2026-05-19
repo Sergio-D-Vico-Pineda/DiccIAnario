@@ -66,8 +66,31 @@ def is_spanish(text: str) -> bool:
 
     if _has_lib and _detector is not None:
         try:
-            detected = _detector.detect_language_of(text)
-            return bool(detected is not None and detected == Language.SPANISH)
+            confidence_values = _detector.compute_language_confidence_values(text)
+
+            spanish_confidence = 0.0
+            top_language = None
+            top_confidence = 0.0
+            for item in confidence_values:
+                language = getattr(item, "language", None)
+                confidence = float(getattr(item, "value", 0.0))
+                if language == Language.SPANISH:
+                    spanish_confidence = confidence
+                if confidence > top_confidence:
+                    top_confidence = confidence
+                    top_language = language
+
+            # Accept when Spanish has meaningful confidence.
+            if spanish_confidence >= 0.30:
+                return True
+
+            # Hard reject only when clearly non-Spanish and highly confident.
+            if top_language is not None and top_language != Language.SPANISH and top_confidence >= 0.80:
+                return False
+
+            # For short or ambiguous terms, fall back to conservative heuristics.
+            fallback = _fallback_is_spanish(text)
+            return bool(fallback) if fallback is not None else False
         except Exception:
             logger.debug("lingua detector failed, falling back to heuristic")
 
