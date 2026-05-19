@@ -54,3 +54,14 @@ def test_api_accepts_spanish_term_with_accent_valido(client) -> None:
     payload = response.json()
     assert payload["normalized"] == "válido"
     assert payload["is_valid"] is True
+
+
+def test_api_accepts_spanish_noun_hecatombe(client) -> None:
+    client.post("/api/session")
+
+    response = client.post("/api/validate", json={"term": "hecatombe"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["normalized"] == "hecatombe"
+    assert payload["is_valid"] is True

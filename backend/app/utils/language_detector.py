@@ -52,8 +52,8 @@ def _fallback_is_spanish(text: str) -> Optional[bool]:
     if t in _ENGLISH_COMMON:
         return False
 
-    # Unknown — be conservative and return False (not Spanish)
-    return False
+    # Unknown alphabetic words are allowed through to spaCy, which handles many valid Spanish nouns.
+    return True
 
 
 def is_spanish(text: str) -> bool:
@@ -88,7 +88,7 @@ def is_spanish(text: str) -> bool:
             if top_language is not None and top_language != Language.SPANISH and top_confidence >= 0.80:
                 return False
 
-            # For short or ambiguous terms, fall back to conservative heuristics.
+            # For short or ambiguous terms, fall back to lightweight heuristics.
             fallback = _fallback_is_spanish(text)
             return bool(fallback) if fallback is not None else False
         except Exception:
